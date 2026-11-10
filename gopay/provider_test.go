@@ -13,13 +13,13 @@ func buildValidStaticQRIS(t *testing.T) string {
 	m := qris.EmvTlvMap{
 		qris.TagPayloadFormat:     "01",
 		qris.TagPointOfInitiation: qris.POIStatic,
-		"26":                     "0012ID.CO.GOPAY.WWW0118936009110000000001",
-		"52":                     "5912",
-		"53":                     "360",
-		"58":                     "ID",
-		"59":                     "GOPAY STORE",
-		"60":                     "Jakarta",
-		"61":                     "12345",
+		"26":                      "0012ID.CO.GOPAY.WWW0118936009110000000001",
+		"52":                      "5912",
+		"53":                      "360",
+		"58":                      "ID",
+		"59":                      "GOPAY STORE",
+		"60":                      "Jakarta",
+		"61":                      "12345",
 	}
 	payload, err := qris.BuildEmv(m)
 	if err != nil {
@@ -155,4 +155,3 @@ func TestProviderSessionExportRestore(t *testing.T) {
 		t.Errorf("expected restored provider to be authenticated")
 	}
 }
-

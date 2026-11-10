@@ -121,4 +121,3 @@ func TestTransactionFeedListRecent(t *testing.T) {
 		t.Errorf("expected amount 1501, got %d", res.Transactions[0].Amount)
 	}
 }
-

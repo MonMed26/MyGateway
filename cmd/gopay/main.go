@@ -203,4 +203,3 @@ func prompt(r *bufio.Reader, message string) string {
 	line, _ := r.ReadString('\n')
 	return strings.TrimRight(line, "\r\n")
 }
-

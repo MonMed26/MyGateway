@@ -155,6 +155,13 @@ func (a *AuthClient) VerifyOtp(ctx context.Context, input VerifyOtpInput) (*OtpV
 	}
 	otpToken, _ := verified["otp_token"].(string)
 	if otpToken == "" {
+		keys := make([]string, 0, len(verified))
+		for k := range verified {
+			keys = append(keys, k)
+		}
+		a.logger.Error("shopee otp: verify_otp returned no otp_token", map[string]any{
+			"data_keys": keys,
+		})
 		return nil, core.NewAuthError(core.CodeAuthFailed,
 			"Shopee OTP verification returned no token", nil)
 	}
@@ -389,7 +396,18 @@ func (a *AuthClient) accountRequest(ctx context.Context, path string, body map[s
 	}, &response); err != nil {
 		return nil, err
 	}
-	return RequireAccountData(response, path)
+	data, err := RequireAccountData(response, path)
+	if err != nil {
+		// Log the upstream status without any credential material so a failed
+		// verification can be diagnosed from the server log.
+		a.logger.Error("shopee account request failed", map[string]any{
+			"path":          path,
+			"shopee_error":  response.Error,
+			"shopee_msg":    response.Msg,
+		})
+		return nil, err
+	}
+	return data, nil
 }
 
 func (a *AuthClient) checkAccountExists(ctx context.Context, phone, password, riskToken string) error {

@@ -117,4 +117,3 @@ func TestTokenManagerConcurrentRefreshDeduplication(t *testing.T) {
 		t.Errorf("expected single collapsed refresh call, got %d", refresher.calls.Load())
 	}
 }
-

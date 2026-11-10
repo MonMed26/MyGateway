@@ -18,4 +18,3 @@ func SanitizeHTTPBody(body []byte, maxLen int) string {
 	}
 	return s
 }
-

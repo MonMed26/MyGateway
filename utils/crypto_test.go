@@ -53,4 +53,3 @@ func TestDecryptCorruptedCiphertextFails(t *testing.T) {
 		t.Fatalf("expected decryption with corrupted ciphertext to fail")
 	}
 }
-

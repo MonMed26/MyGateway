@@ -54,6 +54,14 @@ type TickResult struct {
 	Expired []core.Payment
 }
 
+// quarantinedStore is an optional capability. When a store implements it, the
+// allocator also avoids amounts released by recent terminal payments, so a
+// restart (which empties the in-memory quarantine) cannot immediately reuse an
+// amount that a late transaction could still settle.
+type quarantinedStore interface {
+	ListQuarantined(ctx context.Context, scope *core.PaymentScope, since time.Time) ([]core.Payment, error)
+}
+
 // Service orchestrates dynamic payments with unique amounts and polls the
 // transaction feed to settle or expire them. All state transitions are
 // serialized through a single write queue so cancel, settle, and expire can
@@ -67,11 +75,11 @@ type Service struct {
 	staticQris string
 	allocator  *AmountAllocator
 
-	pollInterval  time.Duration
-	defaultExpiry time.Duration
-	clockSkew     time.Duration
-	pageSize      int
-	logger        utils.Logger
+	pollInterval   time.Duration
+	defaultExpiry  time.Duration
+	clockSkew      time.Duration
+	pageSize       int
+	logger         utils.Logger
 	lifecycleToken any
 
 	// writeMu serializes allocations and state transitions.
@@ -79,9 +87,9 @@ type Service struct {
 
 	// stateMu guards the quarantine and consumed-transaction maps. It is a leaf
 	// lock: never acquire writeMu while holding stateMu.
-	stateMu            sync.Mutex
-	recentlyFreed      map[int64]time.Time
-	consumedTxIDs      map[string]time.Time
+	stateMu       sync.Mutex
+	recentlyFreed map[int64]time.Time
+	consumedTxIDs map[string]time.Time
 
 	// Lifecycle state.
 	activeMu        sync.Mutex
@@ -89,9 +97,10 @@ type Service struct {
 	activationEpoch int64
 
 	// Background polling.
-	stopCh   chan struct{}
-	stopOnce sync.Once
-	tickWG   sync.WaitGroup
+	runMu   sync.Mutex
+	stopCh  chan struct{}
+	running bool
+	tickWG  sync.WaitGroup
 
 	// Event handlers.
 	handlerMu       sync.Mutex
@@ -116,22 +125,22 @@ func NewService(opts Options) (*Service, error) {
 	}
 
 	s := &Service{
-		merchantID: opts.MerchantID,
-		scope:      opts.Scope,
-		store:      opts.Store,
-		feed:       opts.Feed,
-		staticQris: opts.StaticQris,
-		allocator:  opts.Allocator,
-		pollInterval: opts.PollInterval,
-		defaultExpiry: opts.DefaultExpiry,
-		clockSkew:     opts.ClockSkew,
-		pageSize:      opts.PageSize,
-		logger:        opts.Logger,
+		merchantID:     opts.MerchantID,
+		scope:          opts.Scope,
+		store:          opts.Store,
+		feed:           opts.Feed,
+		staticQris:     opts.StaticQris,
+		allocator:      opts.Allocator,
+		pollInterval:   opts.PollInterval,
+		defaultExpiry:  opts.DefaultExpiry,
+		clockSkew:      opts.ClockSkew,
+		pageSize:       opts.PageSize,
+		logger:         opts.Logger,
 		lifecycleToken: opts.LifecycleToken,
-		recentlyFreed: make(map[int64]time.Time),
-		consumedTxIDs: make(map[string]time.Time),
-		active:        true,
-		stopCh:        make(chan struct{}),
+		recentlyFreed:  make(map[int64]time.Time),
+		consumedTxIDs:  make(map[string]time.Time),
+		active:         true,
+		stopCh:         make(chan struct{}),
 	}
 
 	// Default feed scope: when unscoped, GoPay offset feeds still need a scope
@@ -272,12 +281,9 @@ func (s *Service) HasStaticQris() bool { return s.staticQris != "" }
 
 // IsRunning reports whether background reconciliation is scheduled.
 func (s *Service) IsRunning() bool {
-	select {
-	case <-s.stopCh:
-		return false
-	default:
-		return true
-	}
+	s.runMu.Lock()
+	defer s.runMu.Unlock()
+	return s.running
 }
 
 // IsActive reports whether this service owns its scope's write lifecycle.
@@ -460,6 +466,18 @@ func (s *Service) CreatePayment(ctx context.Context, input CreatePaymentInput) (
 	}
 	s.stateMu.Unlock()
 
+	// Durable stores return terminal payments freed within the quarantine
+	// window (paid/expired/cancelled), covering process restarts.
+	if qs, ok := s.store.(quarantinedStore); ok {
+		quarantined, qerr := qs.ListQuarantined(ctx, s.scope, now.Add(-s.amountQuarantine()))
+		if qerr != nil {
+			return core.Payment{}, qerr
+		}
+		for _, p := range quarantined {
+			taken[p.UniqueAmount] = true
+		}
+	}
+
 	uniqueOffset, err := s.allocator.Allocate(input.Amount, taken)
 	if err != nil {
 		return core.Payment{}, err
@@ -583,28 +601,35 @@ func (s *Service) GetPayment(ctx context.Context, id string) (*core.Payment, err
 
 // ---- Polling ----
 
-// Start begins background polling. Safe to call once; repeated calls are no-ops.
+// Start begins background polling. Repeated calls while already running are
+// no-ops, and a service that was stopped (for example by Deactivate during a
+// store switch) can be started again: a fresh stop channel is created.
 func (s *Service) Start() {
 	if err := s.assertActive("start payment polling"); err != nil {
 		return
 	}
-	select {
-	case <-s.stopCh:
+	s.runMu.Lock()
+	if s.running {
+		s.runMu.Unlock()
 		return
-	default:
 	}
-	s.logger.Info("payment polling started", map[string]any{"intervalMs": s.pollInterval.Milliseconds()})
+	s.stopCh = make(chan struct{})
+	stop := s.stopCh
+	s.running = true
 	s.tickWG.Add(1)
-	go s.pollLoop()
+	s.runMu.Unlock()
+
+	s.logger.Info("payment polling started", map[string]any{"intervalMs": s.pollInterval.Milliseconds()})
+	go s.pollLoop(stop)
 }
 
-func (s *Service) pollLoop() {
+func (s *Service) pollLoop(stop <-chan struct{}) {
 	defer s.tickWG.Done()
 	ticker := time.NewTicker(s.pollInterval)
 	defer ticker.Stop()
 	for {
 		select {
-		case <-s.stopCh:
+		case <-stop:
 			return
 		case <-ticker.C:
 			if s.IsActive() {
@@ -614,12 +639,19 @@ func (s *Service) pollLoop() {
 	}
 }
 
-// Stop stops background polling. It does not wait for an in-flight tick.
+// Stop stops background polling. It does not wait for an in-flight tick, and
+// is safe to call multiple times.
 func (s *Service) Stop() {
-	s.stopOnce.Do(func() {
+	s.runMu.Lock()
+	wasRunning := s.running
+	if s.running {
+		s.running = false
 		close(s.stopCh)
-	})
-	s.logger.Info("payment polling stopped", nil)
+	}
+	s.runMu.Unlock()
+	if wasRunning {
+		s.logger.Info("payment polling stopped", nil)
+	}
 }
 
 // Tick runs a single reconciliation pass: fetch recent transactions, settle

@@ -8,9 +8,9 @@ import (
 	"github.com/hirotomasato/paygateme/core"
 )
 
-// settledStatuses are transaction status labels treated as success. Unknown or
-// empty statuses are accepted (fail-open) to tolerate feed variations; known
-// failure statuses are rejected.
+// settledStatuses are transaction status labels treated as success. Matching is
+// fail-closed: only these explicit success labels are accepted, so unknown,
+// empty, pending, or failed statuses can never settle a payment.
 var settledStatuses = map[string]bool{
 	"settlement": true,
 	"capture":    true,

@@ -99,4 +99,3 @@ func Decrypt(ciphertext []byte, passphrase string) ([]byte, error) {
 	}
 	return plaintext, nil
 }
-

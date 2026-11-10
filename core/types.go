@@ -122,7 +122,7 @@ type TransactionFeedQuery struct {
 type TransactionFeedResult struct {
 	Transactions []MerchantTransaction
 	// True when the provider hit its pagination ceiling before exhausting data.
-	Truncated bool
+	Truncated    bool
 	PagesFetched int
 }
 

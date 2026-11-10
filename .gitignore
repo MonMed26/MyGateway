@@ -16,3 +16,13 @@ myqr.png
 *.test
 *.out
 vendor/
+
+# Gateway runtime data (SQLite, master key, sessions) and logs
+/data/
+*.log
+
+# Frontend
+web/node_modules/
+web/.next/
+web/out/
+*.tsbuildinfo

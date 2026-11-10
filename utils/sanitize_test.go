@@ -31,4 +31,3 @@ func TestSanitizeHTTPBodyTruncatesOversized(t *testing.T) {
 		t.Errorf("expected truncated suffix")
 	}
 }
-

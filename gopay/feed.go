@@ -37,43 +37,79 @@ func (f *TransactionFeed) ListRecent(ctx context.Context, query core.Transaction
 	if size > MaxTransactionPageSize {
 		size = MaxTransactionPageSize
 	}
+	maxPages := query.MaxPages
+	if maxPages <= 0 {
+		maxPages = MaxTransactionPagesPerTick
+	}
+	if maxPages > MaxTransactionPagesPerTick {
+		maxPages = MaxTransactionPagesPerTick
+	}
 
-	params := map[string]string{
-		"from":         "0",
+	baseParams := map[string]string{
 		"size":         fmt.Sprintf("%d", size),
 		"start_time":   query.StartTime.UTC().Format(time.RFC3339),
 		"end_time":     query.EndTime.UTC().Format(time.RFC3339),
 		"merchant_ids": merchantID,
 	}
 	if len(statuses) > 0 {
-		params["statuses"] = join(statuses, ",")
+		baseParams["statuses"] = join(statuses, ",")
 	}
 	if len(paymentTypes) > 0 {
-		params["payment_types"] = join(paymentTypes, ",")
+		baseParams["payment_types"] = join(paymentTypes, ",")
 	}
 
-	var raw struct {
-		From         int              `json:"from"`
-		Size         int              `json:"size"`
-		Total        int              `json:"total"`
-		Transactions []rawTransaction `json:"transactions"`
-	}
-	if err := f.http.RequestJSON(ctx, HTTPRequest{
-		Method: "GET",
-		Path:   epTransactions,
-		Query:  params,
-	}, &raw); err != nil {
-		return core.TransactionFeedResult{}, err
+	// The merchant-analytics feed is offset-based (`from`). Walk the window page
+	// by page so high-volume merchants do not silently lose transactions that
+	// fall beyond the first page.
+	transactions := make([]core.MerchantTransaction, 0, size)
+	from := 0
+	pagesFetched := 0
+	truncated := false
+	lastLen := -1
+	for pagesFetched < maxPages {
+		params := make(map[string]string, len(baseParams)+1)
+		for k, v := range baseParams {
+			params[k] = v
+		}
+		params["from"] = fmt.Sprintf("%d", from)
+
+		var raw struct {
+			From         int              `json:"from"`
+			Size         int              `json:"size"`
+			Total        int              `json:"total"`
+			Transactions []rawTransaction `json:"transactions"`
+		}
+		if err := f.http.RequestJSON(ctx, HTTPRequest{
+			Method: "GET",
+			Path:   epTransactions,
+			Query:  params,
+		}, &raw); err != nil {
+			return core.TransactionFeedResult{}, err
+		}
+
+		pagesFetched++
+		lastLen = len(raw.Transactions)
+		for _, t := range raw.Transactions {
+			tx := normalizeTransaction(t)
+			transactions = append(transactions, tx.ToCoreTransaction())
+		}
+
+		from += lastLen
+		if lastLen < size {
+			break
+		}
+		if raw.Total > 0 && from >= raw.Total {
+			break
+		}
+		if pagesFetched == maxPages {
+			truncated = true
+		}
 	}
 
-	transactions := make([]core.MerchantTransaction, 0, len(raw.Transactions))
-	for _, t := range raw.Transactions {
-		tx := normalizeTransaction(t)
-		transactions = append(transactions, tx.ToCoreTransaction())
-	}
 	return core.TransactionFeedResult{
 		Transactions: transactions,
-		PagesFetched: 1,
+		Truncated:    truncated,
+		PagesFetched: pagesFetched,
 	}, nil
 }
 

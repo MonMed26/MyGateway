@@ -51,11 +51,13 @@ func TestCreatePaymentAllocatesUniqueAmount(t *testing.T) {
 	if p1.UniqueAmount == p2.UniqueAmount {
 		t.Fatalf("two payments got the same unique amount %d", p1.UniqueAmount)
 	}
-	if p1.UniqueAmount != 10001 {
-		t.Fatalf("first unique amount = %d, want 10001 (smallest slot)", p1.UniqueAmount)
-	}
-	if p2.UniqueAmount != 10002 {
-		t.Fatalf("second unique amount = %d, want 10002", p2.UniqueAmount)
+	for _, p := range []core.Payment{p1, p2} {
+		if p.UniqueOffset < 1 || p.UniqueOffset > 999 {
+			t.Fatalf("unique offset %d outside [1,999]", p.UniqueOffset)
+		}
+		if p.UniqueAmount != 10000+p.UniqueOffset {
+			t.Fatalf("unique amount %d != base + offset (%d)", p.UniqueAmount, p.UniqueOffset)
+		}
 	}
 }
 

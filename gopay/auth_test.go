@@ -83,4 +83,3 @@ func TestAuthClientRequestOTPAndVerify(t *testing.T) {
 		t.Errorf("expected refreshed access token 'mock-access-token', got %q", refreshed.AccessToken)
 	}
 }
-

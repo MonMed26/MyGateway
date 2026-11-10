@@ -466,12 +466,26 @@ func (p *Provider) buildServiceLocked(scope *core.PaymentScope) (*payment.Servic
 		clockSkew = time.Duration(p.config.ClockSkew) * time.Millisecond
 	}
 
+	uniqueMax := p.config.UniqueMax
+	if uniqueMax <= 0 && p.config.MaxUniqueOffset > 0 {
+		uniqueMax = int64(p.config.MaxUniqueOffset)
+	}
+	var allocator *payment.AmountAllocator
+	if uniqueMax > 0 {
+		a, aerr := payment.NewAmountAllocatorRange(p.config.UniqueMin, uniqueMax)
+		if aerr != nil {
+			return nil, aerr
+		}
+		allocator = a
+	}
+
 	svc, err := payment.NewService(payment.Options{
 		MerchantID:    scope.MerchantID,
 		Scope:         scope,
 		Store:         p.store,
 		Feed:          p.feed,
 		StaticQris:    p.staticQRIS,
+		Allocator:     allocator,
 		PollInterval:  pollInterval,
 		DefaultExpiry: defaultExpiry,
 		ClockSkew:     clockSkew,

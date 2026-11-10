@@ -12,10 +12,10 @@ import (
 
 // EMVCo tag ids.
 const (
-	TagPayloadFormat      = "00"
-	TagPointOfInitiation  = "01"
-	TagTransactionAmount  = "54"
-	TagCRC                = "63"
+	TagPayloadFormat     = "00"
+	TagPointOfInitiation = "01"
+	TagTransactionAmount = "54"
+	TagCRC               = "63"
 )
 
 // Point-of-initiation values.

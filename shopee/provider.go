@@ -30,7 +30,11 @@ type ProviderConfig struct {
 	PollInterval  int64
 	DefaultExpiry int64
 	ClockSkew     int64
-	Logger        utils.Logger
+	// Unique-code window for amount allocation. UniqueMax <= 0 uses the
+	// library default (1..999); UniqueMin defaults to 1.
+	UniqueMin int64
+	UniqueMax int64
+	Logger    utils.Logger
 }
 
 // Provider is the high-level Shopee Merchant adapter. It owns auth, merchant
@@ -549,12 +553,21 @@ func (p *Provider) buildServiceLocked(scope *core.PaymentScope) (*payment.Servic
 
 	feed := NewTransactionFeed(p.http, token.Token, p.session.Merchant.ID, p.session.StoreID, APILocale{}, p.logger)
 
+	var allocator *payment.AmountAllocator
+	if p.config.UniqueMax > 0 {
+		allocator, err = payment.NewAmountAllocatorRange(p.config.UniqueMin, p.config.UniqueMax)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	svc, err := payment.NewService(payment.Options{
 		MerchantID:    scope.MerchantID,
 		Scope:         scope,
 		Store:         p.store,
 		Feed:          feed,
 		StaticQris:    p.staticQris,
+		Allocator:     allocator,
 		PollInterval:  durationMs(p.config.PollInterval, 0),
 		DefaultExpiry: durationMs(p.config.DefaultExpiry, 0),
 		ClockSkew:     durationMs(p.config.ClockSkew, 0),

@@ -162,6 +162,10 @@ type ProviderConfig struct {
 	OnSessionUpdated func(session SessionState) error
 	// Maximum unique-amount offset for dynamic QRIS amount encoding.
 	MaxUniqueOffset int
+	// Unique-code window for amount allocation. UniqueMax <= 0 falls back to
+	// MaxUniqueOffset (or the library default). UniqueMin defaults to 1.
+	UniqueMin int64
+	UniqueMax int64
 	// Optional leveled logger. Defaults to noop.
 	Logger utils.Logger
 }

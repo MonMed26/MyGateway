@@ -103,4 +103,3 @@ func TestMerchantClientSearchAndGet(t *testing.T) {
 		t.Errorf("expected MerchantName Warung Makmur, got %s", merchants[0].MerchantName)
 	}
 }
-
