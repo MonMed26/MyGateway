@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hirotomasato/paygateme/internal/gateway"
-	"github.com/hirotomasato/paygateme/internal/repo"
+	"github.com/MonMed26/MyGateway/internal/gateway"
+	"github.com/MonMed26/MyGateway/internal/repo"
 )
 
 func atoiDefault(s string, fallback int) int {

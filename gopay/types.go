@@ -1,6 +1,6 @@
 // Package gopay implements the GoPay / GoBiz merchant provider adapter.
 // It reuses the provider-agnostic payment, qris, and core packages from
-// paygateme — only the GoPay-specific auth, merchant, feed, and token
+// MyGateway — only the GoPay-specific auth, merchant, feed, and token
 // management live here.
 package gopay
 
@@ -9,8 +9,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // ---- Auth ----

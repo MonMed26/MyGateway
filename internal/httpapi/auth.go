@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotomasato/paygateme/internal/security"
+	"github.com/MonMed26/MyGateway/internal/security"
 
 	"golang.org/x/crypto/bcrypt"
 )

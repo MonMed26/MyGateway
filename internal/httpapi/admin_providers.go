@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/internal/model"
-	"github.com/hirotomasato/paygateme/internal/security"
-	"github.com/hirotomasato/paygateme/qris"
-	"github.com/hirotomasato/paygateme/shopee"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/internal/model"
+	"github.com/MonMed26/MyGateway/internal/security"
+	"github.com/MonMed26/MyGateway/qris"
+	"github.com/MonMed26/MyGateway/shopee"
 )
 
 func (s *Server) handleListProviders(w http.ResponseWriter, r *http.Request) {

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 // Provider identifiers.

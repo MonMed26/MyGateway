@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 type fakeFeed struct {

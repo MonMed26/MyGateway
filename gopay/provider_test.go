@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hirotomasato/paygateme/qris"
+	"github.com/MonMed26/MyGateway/qris"
 )
 
 func buildValidStaticQRIS(t *testing.T) string {

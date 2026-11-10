@@ -6,7 +6,7 @@ import (
 	"crypto/rand"
 	"math/big"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 // AmountAllocator allocates a unique whole-rupiah offset so concurrent orders

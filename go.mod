@@ -1,4 +1,4 @@
-module github.com/hirotomasato/paygateme
+module github.com/MonMed26/MyGateway
 
 go 1.26.0
 

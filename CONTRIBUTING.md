@@ -6,8 +6,8 @@ payments (Shopee & GoPay QRIS). Here's how to get started.
 ## Setup
 
 ```bash
-git clone https://github.com/hirotomasato/paygateme.git
-cd paygateme
+git clone https://github.com/MonMed26/MyGateway.git
+cd MyGateway
 go mod download
 ```
 

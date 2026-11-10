@@ -3,7 +3,7 @@ package qris
 import (
 	"strconv"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 // StaticToDynamicQris converts a static QRIS payload into a dynamic one

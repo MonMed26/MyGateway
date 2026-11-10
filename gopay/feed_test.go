@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 func TestToWholeRupiah(t *testing.T) {

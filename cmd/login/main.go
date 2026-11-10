@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hirotomasato/paygateme/shopee"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/shopee"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 func main() {

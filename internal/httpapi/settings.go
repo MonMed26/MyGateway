@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hirotomasato/paygateme/internal/security"
+	"github.com/MonMed26/MyGateway/internal/security"
 )
 
 func (s *Server) handleGetSettings(w http.ResponseWriter, r *http.Request) {

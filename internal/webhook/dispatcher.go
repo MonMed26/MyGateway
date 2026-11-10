@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hirotomasato/paygateme/internal/model"
-	"github.com/hirotomasato/paygateme/internal/repo"
-	"github.com/hirotomasato/paygateme/internal/security"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/internal/model"
+	"github.com/MonMed26/MyGateway/internal/repo"
+	"github.com/MonMed26/MyGateway/internal/security"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // Dispatcher owns the outbound webhook queue.
@@ -90,7 +90,7 @@ func (d *Dispatcher) drain() {
 
 var eventHeaders = map[string]string{
 	"Content-Type":      "application/json",
-	"User-Agent":        "paygateme-gateway/1.0",
+	"User-Agent":        "mygateway/1.0",
 	"X-Gateway-Event":   "payment.paid",
 	"X-Gateway-Version": "1",
 }

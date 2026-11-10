@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 // AuthClient wraps the GoID authentication endpoints used by the merchant

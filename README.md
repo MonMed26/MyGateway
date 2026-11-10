@@ -1,391 +1,289 @@
-# PayGateMe
+# MyGateway
 
-```
- ▄▄▄▄▄▄                           ▄▄▄▄                                 ▄▄▄  ▄▄▄
- ██▀▀▀▀█▄                       ██▀▀▀▀█              ██                ███  ███
- ██    ██   ▄█████▄  ▀██  ███  ██         ▄█████▄  ███████    ▄████▄   ████████
- ██████▀    ▀ ▄▄▄██   ██▄ ██   ██  ▄▄▄▄   ▀ ▄▄▄██    ██      ██▄▄▄▄██  ██ ██ ██
- ██        ▄██▀▀▀██    ████▀   ██  ▀▀██  ▄██▀▀▀██    ██      ██▀▀▀▀▀▀  ██ ▀▀ ██
- ██        ██▄▄▄███     ███     ██▄▄▄██  ██▄▄▄███    ██▄▄▄   ▀██▄▄▄▄█  ██    ██
- ▀▀         ▀▀▀▀ ▀▀     ██        ▀▀▀▀    ▀▀▀▀ ▀▀     ▀▀▀▀     ▀▀▀▀▀   ▀▀    ▀▀
-```
+Semi payment gateway untuk merchant **Shopee** dan **GoPay/GoBiz**: QRIS dinamis,
+onboarding lewat OTP, polling transaksi otomatis, webhook bertanda tangan, dan
+dashboard admin modern (Next.js + shadcn/ui) yang di-embed ke dalam satu binary Go.
 
-**Go library for Shopee & GoPay merchant payments** — OTP login, dynamic QRIS, live transaction feed.
-
-> ⚠️ **Unofficial SDK** — this is a community reverse-engineered library. It is not affiliated with, endorsed by, or connected to Shopee, GoPay, Gojek, or any of their affiliates. Use at your own risk.
-
-## 📁 Project structure
-
-```
-.
-├── cmd/
-│   ├── login/           OTP login CLI
-│   └── tui/             terminal payment app (test harness)
-├── core/                domain types, errors, payment scope — zero deps
-├── shopee/              Shopee provider (cookie-JWT auth)
-├── gopay/               GoPay provider (Bearer-OAuth2) — 🚧 in dev
-├── payment/             allocator, matcher, service
-├── qris/                EMVCo/QRIS parser, CRC16
-├── utils/               logger, phone, ID, CRC16
-├── README.md
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── SECURITY.md
-├── CODE_OF_CONDUCT.md
-├── LICENSE
-├── go.mod
-└── go.sum
-```
-
-| Package | Purpose | Deps |
-|---------|---------|------|
-| `core/` | Domain types, error hierarchy, payment scope | none |
-| `shopee/` | Shopee provider: cookie‑JWT auth, merchant, feed, QRIS | `core`, `payment`, `qris`, `utils` |
-| `gopay/` | GoPay provider — **🚧 in development** | `core`, `payment`, `qris`, `utils` |
-| `payment/` | Unique‑amount allocator, settlement matcher, service orchestrator | `core`, `qris`, `utils` |
-| `qris/` | EMVCo/QRIS parser, static→dynamic injection, CRC16 | `core`, `utils` |
-| `utils/` | Logger, phone, ID, CRC16 helpers | none |
+> **Unofficial.** Proyek ini memakai alur web merchant yang di-reverse-engineer,
+> bukan API resmi Shopee/Gojek. Tidak berafiliasi dengan Shopee, GoPay, Gojek,
+> atau afiliasinya. Gunakan dengan risiko sendiri dan patuhi ketentuan layanan
+> masing-masing penyedia.
 
 ---
 
-## Install
+## Fitur
 
-```bash
-go get github.com/hirotomasato/paygateme
+- **Dashboard admin** (login bcrypt, session cookie) — statistik, provider, transaksi, detail transaksi.
+- **Onboarding provider via OTP** — Shopee (password opsional) dan GoPay, langsung dari dashboard.
+- **QRIS dinamis** — static QRIS EMVCo diubah per transaksi dengan nominal unik.
+- **Unique code global** — rentang kode unik diatur sekali untuk semua provider.
+- **Rekonsiliasi otomatis** — polling feed provider, pencocokan nominal, expiry, anti double-settle.
+- **Webhook global** — HMAC-SHA256, retry exponential, log pengiriman, dan kirim ulang manual.
+- **API klien** — satu Bearer token untuk semua request, SQLite sebagai penyimpanan.
+- **Satu binary** — UI statis di-embed; tidak perlu menjalankan Node saat produksi.
+
+---
+
+## Persyaratan
+
+- Go **1.26+**
+- Node.js **20+** dan npm (hanya jika ingin rebuild dashboard)
+- SQLite tidak perlu diinstal (driver pure-Go, database dibuat otomatis)
+
+---
+
+## Struktur repositori
+
+```
+cmd/gateway/        Server HTTP (API + dashboard + worker webhook)
+internal/db/        Buka SQLite, migrasi, dan kompatibilitas skema lama
+internal/repo/      Repository: admin, provider, payment, webhook, settings
+internal/gateway/   Manajer provider: build instance, OTP, polling, event
+internal/webhook/   Dispatcher webhook (HMAC, retry, resend)
+internal/httpapi/   REST API admin + API klien
+internal/webui/     Embed dashboard hasil static export
+web/                Source Next.js + shadcn/ui
+core/               Tipe domain, error, port
+shopee/ gopay/      Adapter provider
+payment/            Allocator nominal unik, matcher, service polling
+qris/ utils/        EMVCo/QRIS, CRC16, logger, kripto
+scripts/            build-all.ps1, dev.ps1
 ```
 
-…
+---
 
-## Providers at a glance
+## Quick start
 
-| | Shopee | GoPay |
+```bash
+git clone https://github.com/MonMed26/MyGateway.git
+cd MyGateway
+go build -o gateway.exe ./cmd/gateway
+./gateway.exe
+```
+
+Buka **http://localhost:8080** dan login dengan akun default:
+
+```
+username: admin
+password: admin123
+```
+
+> Ganti password default sebelum mengekspos dashboard ke jaringan publik.
+
+### Build ulang dashboard + binary
+
+```powershell
+.\scripts\build-all.ps1
+```
+
+### Mode development
+
+```powershell
+.\scripts\dev.ps1
+```
+
+Menjalankan Go di `:8080` dan Next.js dev server di `:3000` (proxy `/api` ke `:8080`).
+
+---
+
+## Konfigurasi
+
+| Env | Default | Keterangan |
 |---|---|---|
-| **Auth model** | Cookie JWT + OTP (passport SSO) | Bearer OAuth2 + GoID OTP |
-| **Token refresh** | `RefreshSession()` — re‑mint via SSO exchange | `TokenManager` — pre‑expiry + 401 auto‑retry |
-| **Session expiry** | `Authenticated()` checks cookie JWT `exp` | `Authenticated()` checks `TokenManager` liveness |
-| **QRIS** | Static EMVCo → dynamic via tag‑54 injection | Static from outlet profile |
-| **Feed** | `POST` cursor‑based pagination | `GET` offset‑based pagination, minor‑unit ÷100 |
-| **Merchant** | Store list per merchant | `searchMerchants` + outlet QRIS |
-| **HTTP** | Custom `CookieJar`, partner‑API cookieless | `net/http` + Bearer header, 401 retry interceptor |
+| `GATEWAY_ADDR` | `:8080` | Alamat listen HTTP |
+| `GATEWAY_DB` | `./data/gateway.db` | Lokasi SQLite |
+| `GATEWAY_MASTER_KEY` | — | Kunci enkripsi session provider (disarankan) |
+| `GATEWAY_MASTER_KEY_FILE` | `./data/master.key` | Dipakai bila env master key kosong |
+| `GATEWAY_ADMIN_USER` | `admin` | Username admin awal |
+| `GATEWAY_ADMIN_PASS` | `admin123` | Password admin awal (hanya saat belum ada admin) |
+
+Session provider dienkripsi AES-256-GCM dengan master key sebelum disimpan di SQLite.
 
 ---
 
-## Quick start — Shopee
+## Alur kerja
 
-```go
-package main
+1. **Pengaturan global** — isi API key, webhook URL/secret, rentang unique code, dan provider default.
+2. **Tambah provider** — pilih Shopee/GoPay, lalu selesaikan login OTP.
+3. **Pilih store/outlet** — jika akun punya lebih dari satu.
+4. **Tempel static QRIS** — payload EMVCo dari dashboard merchant.
+5. **Klien membuat payment** — gateway mengalokasikan nominal unik dan membuat QRIS dinamis.
+6. **Polling** — transaksi masuk dicocokkan; saat lunas, webhook dikirim dan transaksi tampil di dashboard.
 
-import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"os"
-	"time"
+---
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/payment"
-	"github.com/hirotomasato/paygateme/shopee"
-)
+## Pengaturan global
 
-func main() {
-	ctx := context.Background()
+Berlaku untuk semua provider (menu **Pengaturan**):
 
-	// 1. Build provider — no session yet.
-	provider := shopee.NewProvider(shopee.ProviderConfig{
-		DeviceReport: shopee.DeviceRiskBlob,
-	})
+| Setting | Fungsi |
+|---|---|
+| API Token | Bearer token tunggal untuk klien memanggil `/api/v1/*` |
+| Webhook URL | Target notifikasi `payment.paid` |
+| Webhook Secret | Kunci HMAC-SHA256 untuk header `X-Gateway-Signature` |
+| Unique code min/max | Rentang kode unik yang ditambahkan ke nominal dasar |
+| Provider default | Dipakai saat request tidak menyertakan `provider_id` |
 
-	// 2. Request OTP.
-	challenge, _ := provider.RequestOtp(ctx, "081234567890", shopee.OtpRequestOptions{})
-	fmt.Printf("OTP sent — channel %d\n", challenge.Channel)
+---
 
-	// 3. Enter OTP → login.
-	fmt.Print("OTP: ")
-	var otp string
-	fmt.Scanln(&otp)
-	outcome, _ := provider.LoginWithOtp(ctx, shopee.LoginWithOtpInput{
-		Challenge: *challenge, OTP: otp,
-	})
-	fmt.Println("Logged in:", outcome.Session.Merchant.Name)
-
-	// 4. Bind static QRIS.
-	provider.SetStaticQris("00020101021126610016ID.CO.SHOPEE.WWW...")
-
-	// 5. Create payment.
-	svc, _ := provider.Payments()
-	p, _ := svc.CreatePayment(ctx, payment.CreatePaymentInput{
-		Amount: 1500, Reference: "order-001",
-	})
-	fmt.Println("Payment:", p.ID, "QR:", p.QRString[:60])
-	fmt.Println("Unique amount:", p.UniqueAmount) // 1501
-
-	// 6. Realtime settlement.
-	svc.OnPaid(func(p core.Payment) {
-		fmt.Printf("✓ LUNAS %s — %s\n", p.ID, rupiah(p.UniqueAmount))
-	})
-	svc.Start()
-	defer svc.Stop()
-	time.Sleep(5 * time.Minute)
-
-	// 7. Persist session.
-	session := provider.ExportSession()
-	out, _ := json.MarshalIndent(session, "", "  ")
-	os.WriteFile("session.json", out, 0o600)
-}
-
-func rupiah(n int64) string { return fmt.Sprintf("Rp %d", n) }
-```
-
-## Quick start — GoPay
-
-> 🚧 **GoPay provider is still in active development.** The types and API surface are in place but have not been tested against the live GoBiz API. See the [Shopee quick start](#quick-start--shopee) for a production‑ready provider.
-
-```go
-package main
-
-import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"os"
-	"time"
-
-	"github.com/hirotomasato/paygateme/gopay"
-	"github.com/hirotomasato/paygateme/payment"
-)
-
-func main() {
-	ctx := context.Background()
-	provider := gopay.NewProvider(gopay.ProviderConfig{
-		OnTokenRefreshed: func(s gopay.SessionState) error {
-			out, _ := json.MarshalIndent(s, "", "  ")
-			return os.WriteFile("gopay-session.json", out, 0o600)
-		},
-	})
-
-	// 1. Request OTP.
-	res, _ := provider.RequestOTP(ctx, "081234567890", "62")
-	fmt.Println("OTP sent, token:", res.OTPToken)
-
-	// 2. Verify OTP.
-	tokens, _ := provider.VerifyOTP(ctx, "123456", res.OTPToken)
-	fmt.Println("Access token:", tokens.AccessToken[:20]+"...")
-
-	// 3. Resolve merchant + QRIS from outlet profile.
-	profile, _ := provider.GetMerchantProfile(ctx)
-	fmt.Println("Merchant:", profile.MerchantName)
-	fmt.Println("QRIS:", provider.StaticQRIS())
-
-	// 4. Create payment.
-	svc, _ := provider.Payments()
-	p, _ := svc.CreatePayment(ctx, payment.CreatePaymentInput{
-		Amount: 5000, Reference: "gopay-order-001",
-	})
-	fmt.Println("Payment:", p.ID, "Unique:", p.UniqueAmount)
-
-	svc.OnPaid(func(p payment.Payment) {
-		fmt.Printf("✓ LUNAS %s\n", p.ID)
-	})
-	svc.Start()
-	defer svc.Stop()
-	time.Sleep(5 * time.Minute)
-
-	// 5. Persist session.
-	session := provider.ExportSession()
-	out, _ := json.MarshalIndent(session, "", "  ")
-	os.WriteFile("gopay-session.json", out, 0o600)
-}
-```
-
-## Restore previous session (no OTP)
+## Onboarding provider
 
 ### Shopee
 
-```go
-var session shopee.Session
-json.Unmarshal(os.ReadFile("session.json"), &session)
-provider := shopee.NewProvider(shopee.ProviderConfig{
-	Session: &session,
-	OnSessionUpdated: func(s shopee.Session) error {
-		out, _ := json.MarshalIndent(s, "", "  ")
-		return os.WriteFile("session.json", out, 0o600)
-	},
-})
-if !provider.Authenticated() { /* re-login */ }
-```
+1. **Providers → Tambah Provider** → pilih `shopee`.
+2. Buka detail provider → **Koneksi Merchant**.
+3. Masukkan nomor HP akun Shopee (`0812…` / `+62…`) dan password bila ada.
+4. Klik **Kirim OTP**, lalu masukkan kode yang diterima.
+5. Jika ada beberapa merchant, pilih salah satu → **Selesaikan Login**.
+6. Pilih store bila perlu, lalu tempel **static QRIS** dan simpan.
 
-### GoPay
+### GoPay / GoBiz
 
-```go
-var session gopay.SessionState
-json.Unmarshal(os.ReadFile("gopay-session.json"), &session)
-provider := gopay.NewProvider(gopay.ProviderConfig{
-	Session: &session,
-	OnTokenRefreshed: func(s gopay.SessionState) error {
-		out, _ := json.MarshalIndent(s, "", "  ")
-		return os.WriteFile("gopay-session.json", out, 0o600)
-	},
-})
-if !provider.Authenticated() { /* re-login */ }
-```
+1. Buat provider `gopay`.
+2. Masukkan nomor HP, kirim OTP, lalu verifikasi.
+3. Gateway otomatis mengambil merchant/outlet dan QRIS bila tersedia; jika tidak, pilih merchant/outlet secara manual.
+
+Setelah terhubung, status akan menunjukkan **Session tersimpan · Authenticated · Polling aktif**.
+Gunakan **Refresh Session** untuk memperpanjang tanpa OTP baru.
 
 ---
 
-## Realtime feed polling
+## API klien
 
-```go
-svc.OnPaid(func(p core.Payment) {
-	// Payment settled — buyer's transaction matched.
-	fmt.Println("LUNAS", p.ID, p.Transaction.Amount)
-})
-svc.OnExpired(func(p core.Payment) {
-	fmt.Println("EXPIRED", p.ID)
-})
-svc.OnError(func(err error) {
-	if core.IsErrorCode(err, core.CodeAuthRequired) {
-		fmt.Println("SESSION EXPIRED — re-login required")
-	}
-})
-svc.Start() // begins background polling
-defer svc.Stop()
+Semua endpoint klien memakai satu Bearer token global:
+
+```
+Authorization: Bearer <API_TOKEN>
 ```
 
-Or manual tick:
+| Method | Path | Keterangan |
+|---|---|---|
+| `GET` | `/api/v1/ping` | Cek koneksi & status webhook |
+| `POST` | `/api/v1/payments` | Buat payment |
+| `GET` | `/api/v1/payments/{id}` | Status payment |
+| `POST` | `/api/v1/payments/{id}/cancel` | Batalkan payment |
 
-```go
-res, err := svc.Tick(ctx)
-fmt.Println("paid:", len(res.Paid), "expired:", len(res.Expired))
-```
-
----
-
-## Session expiry — unified contract
-
-All providers surface expiry through the same error code. The embedding project only needs **one check**:
-
-```go
-if !provider.Authenticated() || core.IsErrorCode(err, core.CodeAuthRequired) {
-	// Re-login with OTP.
-}
-```
-
-| Mechanism | Provider | Signal | Detect |
-|-----------|----------|--------|--------|
-| Token expired (JWT) | Shopee | `Authenticated()` → `false` | `if !provider.Authenticated()` |
-| Token expired (OAuth2) | GoPay | `TokenManager` refresh fails | `core.IsErrorCode(err, core.CodeAuthRequired)` |
-| Token rejected by API (200020‑23) | Shopee | `*core.AuthError` | `core.IsErrorCode(err, core.CodeAuthRequired)` |
-| Account session expired | Shopee | `RefreshSession()` error | `core.IsErrorCode(err, core.CodeAuthRequired)` |
-| Bearer token rejected | GoPay | `TokenManager` 401 → forced refresh | `core.IsErrorCode(err, core.CodeAuthRequired)` |
-
----
-
-## Cancel a payment
-
-```go
-cancelled, err := svc.CancelPayment(ctx, payment.ID)
-// cancelled.Status == core.PaymentCancelled
-```
-
----
-
-## Error handling
-
-Every error is a `*core.BaseError` subtype. Branch with `core.IsErrorCode`:
-
-```go
-if core.IsErrorCode(err, core.CodeAuthRequired) {
-	// re-login
-} else if core.IsErrorCode(err, core.CodeAPIError) {
-	// transient API error — retry
-} else if core.IsErrorCode(err, core.CodeHTTPError) {
-	// network failure
-}
-```
-
-Extract code and message:
-
-```go
-var be *core.BaseError
-if core.AsBaseError(err, &be) {
-	fmt.Println("code:", be.Code, "message:", be.Message)
-}
-```
-
-| Error type | Detect with | Meaning |
-|------------|-------------|---------|
-| `*core.AuthError` | `IsErrorCode(err, CodeAuthRequired)` or `CodeAuthFailed` | Login / session expired |
-| `*core.APIError` | `IsErrorCode(err, CodeAPIError)` | Provider API returned an error |
-| `*core.HTTPError` | `IsErrorCode(err, CodeHTTPError)` | HTTP transport failure |
-| `*core.ConfigError` | `IsErrorCode(err, CodeConfigInvalid)` | Misconfiguration |
-| `*core.CaptchaRequiredError` | `IsErrorCode(err, CodeCaptchaRequired)` | CAPTCHA challenge (Shopee) |
-
----
-
-## 🖥 Demo
-
-```console
-$ paygateme-login
-phone (e.g. 0812xxxx or +62...): 08xxxxxxxxxx
-password (empty if passwordless):
-OTP requested (channel 3, hasPassword=false). Check your phone.
-OTP code: 123456
-login OK: merchant Merchant Name (id=xxxxxxxx)
-session saved to ~/.paygateme/session.json
-
-$ paygateme-tui -restore ~/.paygateme/session.json \
-  -save ~/.paygateme/session.json \
-  -qris-file /tmp/qris.txt
-
-  ╭─ Merchant Name · ⠋ LIVE · SESI 0 LUNAS ───────────────────╮
-  │    █▀▀▀▀▀█  ▀▄▄▀ ▀█▄▀▀   █▄█ █▄▀   █▀▀▀▀▀█    Rp 1.500  │
-  │    █ ███ █ ▀▄▄  ▄▀▀▄▀  ▀█▀ █ █▄▀▀    █ ███ █              │
-  │    █ ▀▀▀ █  ▄██ █  ▀▀████    ▀█▀▄▀▀█   █ ▀▀▀ █  ⠋ LIVE   │
-  │    ...                                           04:55     │
-  ╰──────────────────────────────────────────────────────────╯
-
-  [n] order baru   [c] batalkan   [0-9] nominal   [q] keluar   ↑↓ scroll
-```
-
----
-
-## Testing from the CLI
-
-The `cmd/` directory ships small CLI tools you can run to exercise the providers end‑to‑end.
-
-### Shopee
+### Membuat payment
 
 ```bash
-# OTP login (interactive — asks phone + OTP)
-go run ./cmd/login -save ~/.paygateme/session.json
-
-# Quick smoke test: restore session, create a payment via the terminal app
-go run ./cmd/tui -restore ~/.paygateme/session.json \
-  -save ~/.paygateme/session.json \
-  -qris-file /tmp/qris.txt
+curl -X POST http://localhost:8080/api/v1/payments \
+  -H "Authorization: Bearer <API_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 15000,
+    "reference": "ORDER-1",
+    "expires_in_seconds": 300
+  }'
 ```
 
-### GoPay
+`provider_id` opsional. Bila kosong, gateway memakai **provider default**; jika tidak
+diset dan hanya ada satu provider terhubung, provider itu yang dipakai.
 
-```bash
-# (Coming soon — provider is still in development)
+```json
+{
+  "id": "pay_xxxxxxxxxxxx",
+  "reference": "ORDER-1",
+  "status": "pending",
+  "base_amount": 15000,
+  "unique_offset": 42,
+  "unique_amount": 15042,
+  "qr_string": "00020101021226610016ID.CO.SHOPEE...6304ABCD",
+  "expires_at": "2026-11-10T13:16:11Z"
+}
 ```
+
+`unique_amount` adalah nominal yang harus dibayar pembeli (nominal dasar + kode unik).
+Kode unik dialokasikan acak dalam rentang global dan tidak dipakai ulang selama
+masih ada payment aktif atau masih dalam masa karantina.
 
 ---
 
-## Package layout
+## Webhook
+
+Saat payment berstatus `paid`, gateway mengirim `POST` JSON ke **Webhook URL** global.
+
+Header:
 
 ```
-core/        Domain types, errors, payment scope — zero deps
-shopee/      Shopee provider: auth, merchant, feed, QRIS binding
-gopay/       GoPay provider: auth, merchant, feed, token lifecycle
-payment/     Payment service: allocator, matcher, store
-qris/        EMVCo/QRIS parser, dynamic payload builder, CRC16
-utils/       Logger, phone, ID, CRC16 helpers
-cmd/         CLI test tools (login, terminal)
+Content-Type: application/json
+X-Gateway-Event: payment.paid
+X-Gateway-Delivery: <delivery-id>
+X-Gateway-Signature: sha256=<hmac-sha256-hex>
 ```
+
+Body:
+
+```json
+{
+  "event": "payment.paid",
+  "created_at": "2026-11-10T13:10:00Z",
+  "payment": {
+    "id": "pay_xxxxxxxxxxxx",
+    "config_id": "0b5c495b6181cf66",
+    "reference": "ORDER-1",
+    "base_amount": 15000,
+    "unique_offset": 42,
+    "unique_amount": 15042,
+    "status": "paid",
+    "qr_string": "0002010102122661...",
+    "created_at": "2026-11-10T13:05:00Z",
+    "expires_at": "2026-11-10T13:10:00Z",
+    "paid_at": "2026-11-10T13:07:12Z",
+    "transaction": { "...": "payload feed provider" },
+    "metadata": { "order_id": "A-1" }
+  }
+}
+```
+
+Verifikasi (Node.js):
+
+```js
+const crypto = require("crypto");
+const expected = "sha256=" + crypto
+  .createHmac("sha256", WEBHOOK_SECRET)
+  .update(rawBody)
+  .digest("hex");
+const valid = crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+```
+
+Perilaku:
+
+- Retry otomatis hingga 6 kali dengan backoff exponential (15s → 30s → … cap 1 jam).
+- Setiap percobaan tercatat di dashboard (HTTP status + respons).
+- Bisa dikirim ulang manual dari halaman detail transaksi.
+- Konsumen sebaiknya idempoten berdasarkan `payment.id` / `X-Gateway-Delivery`.
 
 ---
 
-## License
+## Database
 
-MIT
+SQLite dengan WAL. Tabel utama:
+
+| Tabel | Isi |
+|---|---|
+| `admin_users`, `admin_sessions` | Akun admin + session (token di-hash) |
+| `provider_configs` | Provider, merchant/store/outlet, QRIS, session terenkripsi |
+| `settings` | API token, webhook, unique code, provider default |
+| `payments` | Payment intent, status, nominal, QRIS, transaksi |
+| `webhook_deliveries` | Riwayat & jadwal pengiriman webhook |
+
+Database lama dengan skema per-provider dimigrasikan otomatis saat server mulai.
+
+---
+
+## Keamanan
+
+- Ganti kredensial admin default (`admin123`) sebelum produksi.
+- Set `GATEWAY_MASTER_KEY` di produksi; jangan commit `data/`.
+- API token & webhook secret saat ini tersimpan di SQLite (akses admin). Untuk
+  produksi, pertimbangkan enkripsi at-rest tambahan.
+- Session provider dienkripsi AES-256-GCM; jangan bagikan file database.
+- Belum termasuk rate limiting, 2FA, dan audit log.
+- Deploy satu instance (SQLite). Untuk multi-instance, gunakan database/queue bersama.
+- Transaksi keuangan: uji menyeluruh sebelum dipakai menerima uang sungguhan.
+
+---
+
+## Lisensi
+
+MIT. Lihat [LICENSE](LICENSE).

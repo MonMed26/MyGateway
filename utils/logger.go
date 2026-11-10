@@ -60,7 +60,7 @@ type ConsoleLogger struct {
 func NewConsoleLogger(minLevel Level) *ConsoleLogger {
 	return &ConsoleLogger{
 		minLevel: minLevel,
-		prefix:   "[paygateme]",
+		prefix:   "[mygateway]",
 	}
 }
 
@@ -116,5 +116,5 @@ func (s *StdLogger) Debug(msg string, meta map[string]any) {}
 func (s *StdLogger) Info(msg string, meta map[string]any)  {}
 func (s *StdLogger) Warn(msg string, meta map[string]any)  {}
 func (s *StdLogger) Error(msg string, meta map[string]any) {
-	s.logger.Printf("[paygateme] %s %s %v", "ERROR", msg, meta)
+	s.logger.Printf("[mygateway] %s %s %v", "ERROR", msg, meta)
 }

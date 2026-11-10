@@ -1,7 +1,7 @@
 
 # Binaries
-paygateme-tui
-paygateme-login
+mygateway
+gateway
 tui
 
 # Sensitive session files (contain cookies/tokens)

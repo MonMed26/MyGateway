@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/internal/gateway"
-	"github.com/hirotomasato/paygateme/internal/model"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/internal/gateway"
+	"github.com/MonMed26/MyGateway/internal/model"
 )
 
 func TestEventPayload(t *testing.T) {

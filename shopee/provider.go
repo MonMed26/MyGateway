@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/payment"
-	"github.com/hirotomasato/paygateme/qris"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/payment"
+	"github.com/MonMed26/MyGateway/qris"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // ProviderConfig configures a ShopeeProvider.

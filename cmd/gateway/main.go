@@ -1,4 +1,4 @@
-// Command gateway runs the PayGateMe semi payment gateway: HTTP API, SQLite
+// Command gateway runs the MyGateway semi payment gateway: HTTP API, SQLite
 // persistence, provider polling and webhook delivery.
 package main
 
@@ -13,14 +13,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/hirotomasato/paygateme/internal/db"
-	"github.com/hirotomasato/paygateme/internal/gateway"
-	"github.com/hirotomasato/paygateme/internal/httpapi"
-	"github.com/hirotomasato/paygateme/internal/repo"
-	"github.com/hirotomasato/paygateme/internal/security"
-	"github.com/hirotomasato/paygateme/internal/webhook"
-	"github.com/hirotomasato/paygateme/internal/webui"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/internal/db"
+	"github.com/MonMed26/MyGateway/internal/gateway"
+	"github.com/MonMed26/MyGateway/internal/httpapi"
+	"github.com/MonMed26/MyGateway/internal/repo"
+	"github.com/MonMed26/MyGateway/internal/security"
+	"github.com/MonMed26/MyGateway/internal/webhook"
+	"github.com/MonMed26/MyGateway/internal/webui"
+	"github.com/MonMed26/MyGateway/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )

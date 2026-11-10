@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 func mkPayment(uniqueAmount int64, created, expires time.Time) core.Payment {

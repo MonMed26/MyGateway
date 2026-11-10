@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 // settledStatuses are transaction status labels treated as success. Matching is

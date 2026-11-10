@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/internal/model"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/internal/model"
 )
 
 // Store is the SQLite repository and also implements core.PaymentStore.

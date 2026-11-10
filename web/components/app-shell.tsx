@@ -61,7 +61,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Wallet className="h-5 w-5" />
           </span>
           <div>
-            <div className="text-sm font-semibold tracking-tight">PayGateMe</div>
+            <div className="text-sm font-semibold tracking-tight">MyGateway</div>
             <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Gateway</div>
           </div>
         </Link>
@@ -100,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border/70 bg-card/30 px-4 py-3 md:hidden">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Wallet className="h-5 w-5 text-primary" /> PayGateMe
+            <Wallet className="h-5 w-5 text-primary" /> MyGateway
           </Link>
           <div className="flex items-center gap-1">
             {nav.map((item) => {

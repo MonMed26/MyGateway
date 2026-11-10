@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/internal/model"
-	"github.com/hirotomasato/paygateme/payment"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/internal/model"
+	"github.com/MonMed26/MyGateway/payment"
 )
 
 func (s *Server) handlePing(w http.ResponseWriter, r *http.Request) {

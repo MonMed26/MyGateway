@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // NewToken returns a random hex token of n bytes (2*n hex chars).

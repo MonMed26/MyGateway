@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // TokenManagerConfig configures a TokenManager.

@@ -3,7 +3,7 @@ package payment
 import (
 	"testing"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 func TestAllocateReturnsFreeSlotInRange(t *testing.T) {

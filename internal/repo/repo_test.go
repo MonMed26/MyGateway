@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/internal/db"
-	"github.com/hirotomasato/paygateme/internal/model"
-	"github.com/hirotomasato/paygateme/internal/repo"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/internal/db"
+	"github.com/MonMed26/MyGateway/internal/model"
+	"github.com/MonMed26/MyGateway/internal/repo"
 )
 
 func newStore(t *testing.T) *repo.Store {

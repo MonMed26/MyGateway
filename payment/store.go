@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 // InMemoryStore is the default in-memory PaymentStore. It is safe for

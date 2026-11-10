@@ -9,15 +9,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/gopay"
-	"github.com/hirotomasato/paygateme/internal/model"
-	"github.com/hirotomasato/paygateme/internal/repo"
-	"github.com/hirotomasato/paygateme/internal/security"
-	"github.com/hirotomasato/paygateme/internal/webhook"
-	"github.com/hirotomasato/paygateme/payment"
-	"github.com/hirotomasato/paygateme/shopee"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/gopay"
+	"github.com/MonMed26/MyGateway/internal/model"
+	"github.com/MonMed26/MyGateway/internal/repo"
+	"github.com/MonMed26/MyGateway/internal/security"
+	"github.com/MonMed26/MyGateway/internal/webhook"
+	"github.com/MonMed26/MyGateway/payment"
+	"github.com/MonMed26/MyGateway/shopee"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // Manager owns live provider instances keyed by config id.

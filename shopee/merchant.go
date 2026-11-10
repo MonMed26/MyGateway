@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // MerchantClient provides merchant profile and store discovery for an

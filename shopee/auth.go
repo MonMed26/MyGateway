@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // AuthClient implements Shopee's fetch-only business-account OTP and
@@ -401,9 +401,9 @@ func (a *AuthClient) accountRequest(ctx context.Context, path string, body map[s
 		// Log the upstream status without any credential material so a failed
 		// verification can be diagnosed from the server log.
 		a.logger.Error("shopee account request failed", map[string]any{
-			"path":          path,
-			"shopee_error":  response.Error,
-			"shopee_msg":    response.Msg,
+			"path":         path,
+			"shopee_error": response.Error,
+			"shopee_msg":   response.Msg,
 		})
 		return nil, err
 	}

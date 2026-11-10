@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // TransactionFeed implements core.TransactionFeed for Shopee's cursor-based

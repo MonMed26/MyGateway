@@ -3,7 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "PayGateMe Gateway",
+  title: "MyGateway",
   description: "Semi payment gateway untuk Shopee & GoPay dengan QRIS dinamis, webhook, dan dashboard transaksi.",
 };
 

@@ -39,7 +39,7 @@ export default function LoginPage() {
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary">
             <Wallet className="h-6 w-6" />
           </span>
-          <h1 className="text-xl font-semibold tracking-tight">PayGateMe Gateway</h1>
+          <h1 className="text-xl font-semibold tracking-tight">MyGateway</h1>
           <p className="text-sm text-muted-foreground">Masuk ke dashboard admin</p>
         </div>
 

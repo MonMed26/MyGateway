@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // partnerAPIHost is the host of the merchant/switch partner API, which

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
+	"github.com/MonMed26/MyGateway/core"
 )
 
 // TransactionFeed reads settled/authorized transactions from the merchant

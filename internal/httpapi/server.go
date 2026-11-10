@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotomasato/paygateme/internal/gateway"
-	"github.com/hirotomasato/paygateme/internal/repo"
-	"github.com/hirotomasato/paygateme/internal/security"
-	"github.com/hirotomasato/paygateme/internal/webhook"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/internal/gateway"
+	"github.com/MonMed26/MyGateway/internal/repo"
+	"github.com/MonMed26/MyGateway/internal/security"
+	"github.com/MonMed26/MyGateway/internal/webhook"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // Server wires the HTTP layer to the repositories and gateway manager.

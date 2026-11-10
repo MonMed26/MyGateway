@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotomasato/paygateme/core"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/core"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 // tokenManager is the interface the HTTP client depends on for 401 retry.

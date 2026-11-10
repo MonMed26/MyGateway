@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hirotomasato/paygateme/gopay"
-	"github.com/hirotomasato/paygateme/utils"
+	"github.com/MonMed26/MyGateway/gopay"
+	"github.com/MonMed26/MyGateway/utils"
 )
 
 func main() {
